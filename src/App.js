@@ -1,15 +1,19 @@
 import React, { Component } from 'react';
 import uuid from 'uuid';
-import { values } from 'lodash';
+import { values, noop } from 'lodash';
 
 var database = window.firebase.database();
 
-function getCollection(id) {
-  return database.ref(`/collections/${id}`).once('value').then(x => x.val());
+function getCollection(id, handle) {
+  return database.ref(`/collections/${id}`).on('value', x => handle(x.val()));
 }
 
 function saveToCollection(url, id) {
-  return database.ref(`collections/${id}`).push(url)
+  return database.ref(`collections/${id}/${url.id}`).set(url)
+}
+
+function removeFromCollection(item, collection) {
+  return database.ref(`collections/${collection}/${item.id}`).remove()
 }
 
 const style = {
@@ -28,10 +32,24 @@ const style = {
     cursor: 'pointer'
   },
   imageContainer: {
+    position: 'relative',
     flex: 1,
     display: 'flex',
     minWidth: 300,
     margin: 1
+  },
+  removeImage: {
+    position: 'absolute',
+    top: 5,
+    left: 5,
+    height: 60,
+    width: 60,
+    borderRadius: 4,
+    background: '#333',
+    fontSize: '35px',
+    textAlign: 'center',
+    color: 'white',
+    lineHeight: '55px'
   },
   images: {
     display: 'flex',
@@ -71,12 +89,13 @@ class App extends Component {
   componentDidMount() {
     const id = window.location.pathname.slice(1);
     if (id) {
-      getCollection(id).then(x => this.setState({
+      getCollection(id, x => this.setState({
         urls: values(x)
       }))
     }
     this.input.focus();
   }
+
   saveItem = e => {
     const url = e.target.value;
     if (!url.includes('http')) {
@@ -84,21 +103,23 @@ class App extends Component {
     }
     const image = new Image();
     image.onload = () => {
-      this.setState({
-        error: null,
-        urls: [url, ...this.state.urls]
-      });
+      const item = { url, id: uuid() };
+      this.setState({ error: null });
       this.input.value = '';
       let id = window.location.pathname.slice(1);
       if (!id) {
         id = uuid();
         window.history.pushState(null, null, id);
       }
-      saveToCollection(url, id);
+      saveToCollection(item, id);
     }
     image.onerror = () => this.setState({ error: 'That\'s not an image :(' })
     image.src = url;
   };
+
+  removeItem = item => {
+    removeFromCollection(item, window.location.pathname.slice(1))
+  }
 
   render() {
     return (
@@ -120,10 +141,11 @@ class App extends Component {
         <div style={style.images}>
         {this.state.urls.map((url, index) => (
           <div key={index} style={style.imageContainer}>
+            <div style={style.removeImage} onClick={() => this.removeItem(url)}>&times;</div>
             <img
-              src={url}
+              src={url.url}
               style={{ width: '100%', alignSelf: 'center' }}
-              onClick={() => window.location = url}
+              onClick={() => window.location = url.url}
             />
           </div>
         ))}
