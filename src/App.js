@@ -1,6 +1,11 @@
 import React, { Component } from 'react';
 import uuid from 'uuid';
-import { values, noop } from 'lodash';
+import { values } from 'lodash';
+
+import Logo from './Logo';
+import MenuButton from './MenuButton';
+
+const PRIMARY = '#292c3c';
 
 var database = window.firebase.database();
 
@@ -8,8 +13,8 @@ function getCollection(id, handle) {
   return database.ref(`/collections/${id}`).on('value', x => handle(x.val()));
 }
 
-function saveToCollection(url, id) {
-  return database.ref(`collections/${id}/${url.id}`).set(url)
+function saveToCollection(item, id) {
+  return database.ref(`collections/${id}/${item.id}`).set(item)
 }
 
 function removeFromCollection(item, collection) {
@@ -17,20 +22,6 @@ function removeFromCollection(item, collection) {
 }
 
 const style = {
-  button: {
-    lineHeight: 0,
-    fontSize: 14,
-    fontWeight: 600,
-    borderWidth: 0,
-    padding: 25,
-    margin: 0,
-    textTransform: 'uppercase',
-    borderBottomLeftRadius: 0,
-    borderTopLeftRadius: 0,
-    borderLeft: '1px solid #ccc',
-    height: 51,
-    cursor: 'pointer'
-  },
   imageContainer: {
     position: 'relative',
     flex: 1,
@@ -56,34 +47,41 @@ const style = {
     flexFlow: 'row wrap'
   },
   topContainer: {
-    padding: '0 10%',
-    background: '#ddd',
+    padding: 16,
     display: 'flex',
-    flexDirection: 'column',
-  },
-  inputContainer: {
-    height: 100,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'center'
   },
   input: {
     width: '100%',
+    maxWidth: 600,
     fontSize: 18,
     paddingTop: 15,
     paddingBottom: 15,
     paddingLeft: 25,
     paddingRight: 25,
     borderRadius: 3,
-    borderTopRightRadius: 0,
-    borderBottomRightRadius: 0,
     borderWidth: 0,
+    color: '#333',
+  },
+  headerContainer: {
+    position: 'absolute',
+    top: 0,
+    width: 'calc(100% - 32px)',
+    display: 'flex',
+    justifyContent: 'space-between',
+    padding: 16,
+  },
+  headerInnerContainer: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    maxWidth: 1000, padding: '0 16px', width: '100%'
   }
 }
 
 class App extends Component {
   state = {
-    urls: []
+    urls: [{ url: "https://i.ytimg.com/vi/SfLV8hD7zX4/maxresdefault.jpg" }]
   };
 
   componentDidMount() {
@@ -96,50 +94,87 @@ class App extends Component {
     this.input.focus();
   }
 
-  saveItem = e => {
+  saveItem = async (e) => {
     const url = e.target.value;
     if (!url.includes('http')) {
       return;
     }
-    const image = new Image();
-    image.onload = () => {
-      const item = { url, id: uuid() };
-      this.setState({ error: null });
-      this.input.value = '';
-      let id = window.location.pathname.slice(1);
-      if (!id) {
-        id = uuid();
-        window.history.pushState(null, null, id);
-      }
-      saveToCollection(item, id);
-    }
-    image.onerror = () => this.setState({ error: 'That\'s not an image :(' })
-    image.src = url;
+    
+    const r = await fetch(`https://peaceful-lake-56434.herokuapp.com?url=${url}`)
+    const { images } = await r.json()
+    console.log(images)
+    this.setState({
+      urls: [...images.map(url => ({
+        url,
+        id: uuid()
+      })), ...this.state.urls]
+    })
+    this.clearInput();
+    // const image = new Image();
+    // image.onload = () => {
+    //   const item = { url, id: uuid() };
+    //   this.setState({ error: null });
+    //   this.input.value = '';
+    //   let id = window.location.pathname.slice(1);
+    //   if (!id) {
+    //     id = uuid();
+    //     window.history.pushState(null, null, id);
+    //   }
+    //   // saveToCollection(item, id);
+    // }
+    // image.onerror = () => this.setState({ error: 'That\'s not an image :(' })
+    // image.src = url;
   };
 
   removeItem = item => {
     removeFromCollection(item, window.location.pathname.slice(1))
   }
 
+  clearInput = () => {
+    this.input.value = '';
+  }
+
+  openMenu = () => {
+    console.log('menuuuu')
+  }
+
   render() {
     return (
-      <div>
-        <div style={style.topContainer}>
-          <div style={style.inputContainer}>
-            <input
-              placeholder={`Paste a link to ${window.location.pathname.slice(1) ? 'add to this collection' : "start a collection"}`}
-              style={style.input}
-              type="text"
-              onKeyUp={this.saveItem}
-              ref={(input) => {this.input = input}}
-            />
-          </div>
-          {this.state.error &&
-          <div>{this.state.error}</div>
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        width: '100%',
+        alignSelf: this.state.urls.length ? 'flex-start' : 'center',
+        background: PRIMARY
+      }}>
+        <div style={style.headerContainer}>
+          <MenuButton size={24} handleClick={this.openMenu}/>
+          {this.state.urls.length > 0 &&
+            <Logo small/>
           }
         </div>
+        <div style={{
+          ...style.topContainer,
+          marginTop: this.state.urls.length ? 48 : 0
+        }}>
+          {this.state.urls.length === 0 &&
+            <Logo/>
+          }
+          <input
+            placeholder={`Paste a link to ${this.state.urls.length || window.location.pathname.slice(1) ? 'add to this collection' : "start a collection"}`}
+            style={{
+              ...style.input,
+              opacity: this.state.focused ? 1 : 0.3
+            }}
+            onFocus={() => this.setState({focused: true})}
+            onBlur={() => this.setState({focused: false})}
+            type="url"
+            onKeyUp={this.saveItem}
+            ref={(input) => {this.input = input}}
+          />
+        </div>
         <div style={style.images}>
-        {this.state.urls.map((url, index) => (
+          {this.state.urls.map((url, index) => (
           <div key={index} style={style.imageContainer}>
             <div style={style.removeImage} onClick={() => this.removeItem(url)}>&times;</div>
             <img
@@ -148,7 +183,7 @@ class App extends Component {
               onClick={() => window.location = url.url}
             />
           </div>
-        ))}
+          ))}
         </div>
       </div>
     );
