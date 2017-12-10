@@ -49,16 +49,15 @@ const style = {
   topContainer: {
     padding: 16,
     display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
     justifyContent: 'center'
   },
   input: {
-    width: '100%',
+    width: 'calc(100% - 48px)',
     maxWidth: 600,
     fontSize: 18,
-    paddingTop: 15,
-    paddingBottom: 15,
-    paddingLeft: 25,
-    paddingRight: 25,
+    padding: '16px 24px',
     borderRadius: 3,
     borderWidth: 0,
     color: '#333',
@@ -81,7 +80,7 @@ const style = {
 
 class App extends Component {
   state = {
-    urls: [{ url: "https://i.ytimg.com/vi/SfLV8hD7zX4/maxresdefault.jpg" }]
+    urls: []
   };
 
   componentDidMount() {
@@ -103,24 +102,24 @@ class App extends Component {
     const r = await fetch(`https://peaceful-lake-56434.herokuapp.com?url=${url}`)
     const { images } = await r.json()
     console.log(images)
-    this.setState({
-      urls: [...images.map(url => ({
-        url,
-        id: uuid()
-      })), ...this.state.urls]
-    })
+    // this.setState({
+    //   urls: [...images.map(url => ({
+    //     url,
+    //     id: uuid()
+    //   })), ...this.state.urls]
+    // })
     this.clearInput();
     // const image = new Image();
     // image.onload = () => {
-    //   const item = { url, id: uuid() };
+      const item = { url, id: uuid() };
     //   this.setState({ error: null });
     //   this.input.value = '';
-    //   let id = window.location.pathname.slice(1);
-    //   if (!id) {
-    //     id = uuid();
-    //     window.history.pushState(null, null, id);
-    //   }
-    //   // saveToCollection(item, id);
+      let id = window.location.pathname.slice(1);
+      if (!id) {
+        id = uuid();
+        window.history.pushState(null, null, id);
+      }
+      saveToCollection(item, id);
     // }
     // image.onerror = () => this.setState({ error: 'That\'s not an image :(' })
     // image.src = url;
@@ -135,55 +134,66 @@ class App extends Component {
   }
 
   openMenu = () => {
-    console.log('menuuuu')
+    this.setState({menuOpen: !this.state.menuOpen})
   }
 
   render() {
+    console.log(this.state.urls)
     return (
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        width: '100%',
-        alignSelf: this.state.urls.length ? 'flex-start' : 'center',
-        background: PRIMARY
-      }}>
-        <div style={style.headerContainer}>
-          <MenuButton size={24} handleClick={this.openMenu}/>
-          {this.state.urls.length > 0 &&
-            <Logo small/>
-          }
-        </div>
-        <div style={{
-          ...style.topContainer,
-          marginTop: this.state.urls.length ? 48 : 0
-        }}>
-          {this.state.urls.length === 0 &&
-            <Logo/>
-          }
-          <input
-            placeholder={`Paste a link to ${this.state.urls.length || window.location.pathname.slice(1) ? 'add to this collection' : "start a collection"}`}
+      <div style={{width: '100%', display: 'flex'}}>
+        {this.state.menuOpen &&
+          <div
             style={{
-              ...style.input,
-              opacity: this.state.focused ? 1 : 0.3
+              background: 'red',
+              width: '90%',
+              maxWidth: 400,
+              zIndex: 9,
+              position: 'fixed',
+              height: '100%',
+              transition: ''
             }}
-            onFocus={() => this.setState({focused: true})}
-            onBlur={() => this.setState({focused: false})}
-            type="url"
-            onKeyUp={this.saveItem}
-            ref={(input) => {this.input = input}}
-          />
-        </div>
-        <div style={style.images}>
-          {this.state.urls.map((url, index) => (
-          <div key={index} style={style.imageContainer}>
-            <div style={style.removeImage} onClick={() => this.removeItem(url)}>&times;</div>
-            <img
-              src={url.url}
-              style={{ width: '100%', alignSelf: 'center' }}
-              onClick={() => window.location = url.url}
+          >test</div>
+        }
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          width: '100%',
+          alignSelf: this.state.urls.length ? 'flex-start' : 'center',
+          background: PRIMARY
+        }}>
+          <div style={style.headerContainer}>
+            <MenuButton size={24} handleClick={this.openMenu}/>
+            {this.state.urls.length > 0 &&
+              <Logo small/>
+            }
+          </div>
+          <div style={{
+            ...style.topContainer,
+            marginTop: this.state.urls.length ? 48 : 0
+          }}>
+            {this.state.urls.length === 0 &&
+              <Logo/>
+            }
+            <input
+              placeholder={`Paste a link to ${this.state.urls.length || window.location.pathname.slice(1) ? 'add to this collection' : "start a collection"}`}
+              style={style.input}
+              type="url"
+              onKeyUp={this.saveItem}
+              ref={(input) => {this.input = input}}
             />
           </div>
-          ))}
+          <div style={style.images}>
+            {this.state.urls.map((url, index) => (
+            <div key={index} style={style.imageContainer}>
+              <div style={style.removeImage} onClick={() => this.removeItem(url)}>&times;</div>
+              <img
+                src={url.url}
+                style={{ width: '100%', alignSelf: 'center' }}
+                onClick={() => window.location = url.url}
+              />
+            </div>
+            ))}
+          </div>
         </div>
       </div>
     );
