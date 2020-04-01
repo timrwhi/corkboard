@@ -1,32 +1,35 @@
 import firebase from 'firebase/app';
 import 'firebase/database';
+import config from './firebase.json';
 
-firebase.initializeApp({
-  apiKey: "AIzaSyDNrF1am5Jw4YUuYpYXXvRWEO46w-7cqh8",
-  authDomain: "fart-17799.firebaseapp.com",
-  databaseURL: "https://fart-17799.firebaseio.com",
-  projectId: "fart-17799",
-  storageBucket: "fart-17799.appspot.com",
-  messagingSenderId: "970125185444"
-});
+firebase.initializeApp(config);
 
-export const fetchCollection = (id) =>
+export async function fetchMetadata(url) {
+  return fetch('https://dumpster-api.sixfstudios.now.sh/metadata', {
+    method: 'post',
+    body: JSON.stringify({url}),
+  }).then(r => r.json());
+}
+
+export const fetchCollection = id =>
   new Promise((resolve, reject) => {
     firebase
       .database()
       .ref(`collections/${id}`)
       .once('value')
-      .then(data => resolve(data.toJSON()));
+      .then(data => {
+        resolve(data.toJSON() || {});
+      });
   });
 
-export const saveCollection = (id, items) =>
+export const saveCollection = (id, state) =>
   new Promise((resolve, reject) => {
-    console.log(id, items)
+    console.log(id, state);
     firebase
       .database()
       .ref(`collections/${id}`)
-      .set(items)
+      .set(state)
       .then(() => {
-        resolve()
+        resolve();
       });
   });

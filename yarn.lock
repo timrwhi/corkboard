@@ -4988,6 +4988,13 @@ https-browserify@^1.0.0:
   resolved "https://registry.yarnpkg.com/https-browserify/-/https-browserify-1.0.0.tgz#ec06c10e0a34c0f2faf199f7fd7fc78fffd03c73"
   integrity sha1-7AbBDgo0wPL68Zn3/X/Hj//QPHM=
 
+human-readable-ids@^1.0.4:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/human-readable-ids/-/human-readable-ids-1.0.4.tgz#41b3a2a6966636e104e41e0673b984b36dfde202"
+  integrity sha512-h1zwThTims8A/SpqFGWyTx+jG1+WRMJaEeZgbtPGrIpj2AZjsOgy8Y+iNzJ0yAyN669Q6F02EK66WMWcst+2FA==
+  dependencies:
+    knuth-shuffle "^1.0.0"
+
 iconv-lite@0.4.23:
   version "0.4.23"
   resolved "https://registry.yarnpkg.com/iconv-lite/-/iconv-lite-0.4.23.tgz#297871f63be507adcfbfca715d0cd0eed84e9a63"
@@ -6202,6 +6209,11 @@ kleur@^2.0.1:
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/kleur/-/kleur-2.0.2.tgz#b704f4944d95e255d038f0cb05fb8a602c55a300"
   integrity sha512-77XF9iTllATmG9lSlIv0qdQ2BQ/h9t0bJllHlbvsQ0zUWfU7Yi0S8L5JXzPZgkefIiajLmBJJ4BsMJmqcf7oxQ==
+
+knuth-shuffle@^1.0.0:
+  version "1.0.8"
+  resolved "https://registry.yarnpkg.com/knuth-shuffle/-/knuth-shuffle-1.0.8.tgz#929a467b0efd8d297bdcf318ca988a9f1037f80d"
+  integrity sha512-IdC4Hpp+mx53zTt6VAGsAtbGM0g4BV9fP8tTcviCosSwocHcRDw9uG5Rnv6wLWckF4r72qeXFoK9NkvV1gUJCQ==
 
 last-call-webpack-plugin@^3.0.0:
   version "3.0.0"
