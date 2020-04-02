@@ -10,8 +10,6 @@
 /build
 /public
 
-src/firebase.json
-
 # misc
 .DS_Store
 .env.local
